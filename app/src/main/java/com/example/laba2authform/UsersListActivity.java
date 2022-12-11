@@ -75,29 +75,49 @@ public class UsersListActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 String item = adapterView.getItemAtPosition(i).toString();
-                String pass = "ERROR";
                 Log.d(TAG, " onItemClick: You Clicked On " + item);
 
-                Cursor data = databaseHelper.getItemId(item);
-                int itemId = -1;
-                while (data.moveToNext()) {
-                    itemId = data.getInt(0);
-                }
-                if (itemId > -1) {
-                    Log.d(TAG, " onItemClick: The ID Is: " + itemId);
-                    Intent editScreenIntent = new Intent(UsersListActivity.this, EditDataActivity.class);
-                    editScreenIntent.putExtra("id", itemId);
-                    editScreenIntent.putExtra("item", item);
+                //Cursor data = databaseHelper.getItemId(item);
 
-                    Cursor passdata = databaseHelper.getPass(String.valueOf(itemId), item);
-                    while (passdata.moveToNext()) {
-                        pass = passdata.getString(0);
+                final Handler handler = new Handler(looper) {
+                    public void handleMessage(Message message) {
+
+                        data = (Cursor) message.obj;
+                        int itemId = -1;
+                        while (data.moveToNext()) {
+                            itemId = data.getInt(0);
+                        }
+                        if (itemId > -1) {
+                            Log.d(TAG, " onItemClick: The ID Is: " + itemId);
+                            Intent editScreenIntent = new Intent(UsersListActivity.this, EditDataActivity.class);
+                            editScreenIntent.putExtra("id", itemId);
+                            editScreenIntent.putExtra("item", item);
+
+                            Cursor passdata = databaseHelper.getPass(String.valueOf(itemId), item);
+
+                            String pass = "ERROR";
+                            while (passdata.moveToNext()) {
+                                pass = passdata.getString(0);
+                            }
+                            editScreenIntent.putExtra("pass", pass);
+                            startActivity(editScreenIntent);
+                        } else {
+                            toastMessage("No ID For This Name!");
+                        }
                     }
-                    editScreenIntent.putExtra("pass", pass);
-                    startActivity(editScreenIntent);
-                } else {
-                    toastMessage("No ID For This Name!");
-                }
+
+                };
+
+                new Thread(() -> {
+
+                    Log.d(TAG, "Started thread to get item id from database");
+                    final Message message = Message.obtain();
+                    message.obj = databaseHelper.getItemId(item);
+                    handler.sendMessage(message);
+
+                }).start();
+
+
             }
         });
     }
