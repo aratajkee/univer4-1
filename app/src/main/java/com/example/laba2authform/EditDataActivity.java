@@ -79,11 +79,6 @@ public class EditDataActivity extends AppCompatActivity {
         delete_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                databaseHelper.deleteItem(selectedID,selectedItem);
-//                editable_item.setText("");
-//                editable_item_pass.setText("");
-//                toastMessage("deleted from database");
-//
 
                 final Handler handler = new Handler(looper) {
                     @Override
