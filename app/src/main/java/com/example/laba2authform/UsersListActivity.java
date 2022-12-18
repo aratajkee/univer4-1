@@ -93,11 +93,10 @@ public class UsersListActivity extends AppCompatActivity {
                             editScreenIntent.putExtra("id", itemId);
                             editScreenIntent.putExtra("item", item);
 
-                            Cursor passdata = databaseHelper.getPass(String.valueOf(itemId), item);
-
+                            Cursor passData = databaseHelper.getPass(String.valueOf(itemId), item);
                             String pass = "ERROR";
-                            while (passdata.moveToNext()) {
-                                pass = passdata.getString(0);
+                            while (passData.moveToNext()) {
+                                pass = passData.getString(0);
                             }
                             editScreenIntent.putExtra("pass", pass);
                             startActivity(editScreenIntent);

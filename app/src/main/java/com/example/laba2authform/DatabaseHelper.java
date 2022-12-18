@@ -110,18 +110,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void updateItem(String newItem, String newPass, int id, String oldItem, String oldPass) {
+    public boolean updateItem(String newItem, String newPass, int id, String oldItem, String oldPass) {
 
         SQLiteDatabase db = this.getWritableDatabase();
         String query = "UPDATE " + TABLE_NAME
                 + " SET " + COL1 + " = '" + newItem + "', " + COL2 + " = '" + newPass + "'"
                 + " WHERE " + COL0 + " = '"
                 + id + "'" + " AND " + COL1 + " = '" + oldItem + "'" + " AND " + COL2 + " = '" + oldPass + "'";
-        Log.d(TAG, " updateItem: query: " + query);
-        Log.d(TAG, " updateItem: Setting Item To: " + newItem);
+
+        try {
+            db.execSQL(query);
+            Log.d(TAG, " updateItem: query: " + query);
+            Log.d(TAG, " updateItem: Setting Item To: " + newItem);
+            return true;
+        } catch (SQLException sqlException) {
+            Log.d(TAG, " tried updateItem: query: " + query + " and crushed");
+            return false;
+        }
 
 
-        db.execSQL(query);
     }
 
     public boolean deleteItem(int id, String item) {
@@ -136,6 +143,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Log.d(TAG, " deleteItem: Deleting: " + item + " from " + TABLE_NAME);
             return true;
         } catch (SQLException sqlException) {
+            Log.d(TAG, " tried deleteItem: query: " + query + " and crushed");
+
             return false;
         }
 
