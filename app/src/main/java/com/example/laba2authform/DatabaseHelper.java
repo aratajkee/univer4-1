@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.SearchRecentSuggestionsProvider;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -24,15 +25,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private final Context context;
 
 
-    public DatabaseHelper(@Nullable Context context){
-        super(context,TABLE_NAME,null , 2);
+    public DatabaseHelper(@Nullable Context context) {
+        super(context, TABLE_NAME, null, 2);
         this.context = context;
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String createTable = "CREATE TABLE " + TABLE_NAME +" ("
-                + COL0 +" INTEGER PRIMARY KEY AUTOINCREMENT, "
+        String createTable = "CREATE TABLE " + TABLE_NAME + " ("
+                + COL0 + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + COL1 + " TEXT, "
                 + COL2 + " TEXT " +
                 ")";
@@ -45,7 +46,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
     }
-    public boolean addData(String item1, String item2){
+
+    public boolean addData(String item1, String item2) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL1, item1);
@@ -53,81 +55,90 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 
         //result = -1 is data inserted incorrectly
-        long result = db.insert(TABLE_NAME, null , contentValues);
+        long result = db.insert(TABLE_NAME, null, contentValues);
 
         //if data inserted incorrectly returns false
-        if (result == -1){
+        if (result == -1) {
             Toast.makeText(context, "Failed to insert data!", Toast.LENGTH_SHORT).show();
             return false;
-        }else {
+        } else {
             Toast.makeText(context, "Succeed to insert data!", Toast.LENGTH_SHORT).show();
             return true;
         }
     }
 
-    public Cursor getData(){
+    public Cursor getData() {
         SQLiteDatabase db = this.getWritableDatabase();
         String query = "SELECT * FROM " + TABLE_NAME;
         Cursor data = db.rawQuery(query, null);
         return data;
     }
-    public  Cursor getItemId(String itemName){
+
+    public Cursor getItemId(String itemName) {
         SQLiteDatabase db = this.getWritableDatabase();
         String query = "SELECT " + COL0
-                    + " FROM " + TABLE_NAME
-                    + " WHERE " + COL1
-                    + " = '" + itemName + "'";
-        Cursor data = db.rawQuery(query,null);
+                + " FROM " + TABLE_NAME
+                + " WHERE " + COL1
+                + " = '" + itemName + "'";
+        Cursor data = db.rawQuery(query, null);
         return data;
 
     }
-    public Cursor getPass(String itemID, String item){
+
+    public Cursor getPass(String itemID, String item) {
 
 
         SQLiteDatabase db = this.getWritableDatabase();
         String query = "SELECT " + COL2 +
-                        " FROM " + TABLE_NAME +
-                        " WHERE " + COL0 + " = '" + itemID + "'" + " AND " + COL1 + " = '" + item + "'"
-                ;
+                " FROM " + TABLE_NAME +
+                " WHERE " + COL0 + " = '" + itemID + "'" + " AND " + COL1 + " = '" + item + "'";
+
         Cursor pass = db.rawQuery(query, null);
 
         return pass;
     }
 
-    public boolean login(String username, String pass){
+    public boolean login(String username, String pass) {
         SQLiteDatabase db = this.getWritableDatabase();
         String query = "SELECT " + COL0 + " FROM " + TABLE_NAME +
-                        " WHERE " + COL1 + " ='" + username + "'" + " AND " + COL2 + " ='" + pass + "'";
+                " WHERE " + COL1 + " ='" + username + "'" + " AND " + COL2 + " ='" + pass + "'";
         Cursor id = db.rawQuery(query, null);
-        if(!Objects.equals(id, null)&&id.getCount() > 0){
+        if (!Objects.equals(id, null) && id.getCount() > 0) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public void updateItem(String newItem,String newPass, int id , String oldItem, String oldPass){
+    public void updateItem(String newItem, String newPass, int id, String oldItem, String oldPass) {
 
         SQLiteDatabase db = this.getWritableDatabase();
         String query = "UPDATE " + TABLE_NAME
-                        + " SET " + COL1 + " = '" + newItem + "', " + COL2 + " = '" + newPass + "'"
-                        + " WHERE " + COL0 + " = '"
-                        + id + "'" + " AND " + COL1 + " = '" + oldItem + "'" + " AND " + COL2 + " = '" + oldPass + "'"
-                        ;
+                + " SET " + COL1 + " = '" + newItem + "', " + COL2 + " = '" + newPass + "'"
+                + " WHERE " + COL0 + " = '"
+                + id + "'" + " AND " + COL1 + " = '" + oldItem + "'" + " AND " + COL2 + " = '" + oldPass + "'";
         Log.d(TAG, " updateItem: query: " + query);
         Log.d(TAG, " updateItem: Setting Item To: " + newItem);
 
 
         db.execSQL(query);
     }
-    public void deleteItem(int id, String item){
+
+    public boolean deleteItem(int id, String item) {
         SQLiteDatabase db = this.getWritableDatabase();
-        String query = "DELETE FROM " + TABLE_NAME +" WHERE "
-                        + COL0 + " = '" + id + "'" +
-                        " AND " + COL1 + " = '" + item + "'";
-        Log.d(TAG, " deleteItem: query: " + query);
-        Log.d(TAG, " deleteItem: Deleting: " + item + " from " + TABLE_NAME);
-        db.execSQL(query);
+        String query = "DELETE FROM " + TABLE_NAME + " WHERE "
+                + COL0 + " = '" + id + "'" +
+                " AND " + COL1 + " = '" + item + "'";
+
+        try {
+            db.execSQL(query);
+            Log.d(TAG, " deleteItem: query: " + query);
+            Log.d(TAG, " deleteItem: Deleting: " + item + " from " + TABLE_NAME);
+            return true;
+        } catch (SQLException sqlException) {
+            return false;
+        }
+
     }
 
 }

@@ -2,6 +2,9 @@ package com.example.laba2authform;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -22,6 +25,8 @@ public class EditDataActivity extends AppCompatActivity {
     private String selectedItem;
     private String selectedPass;
     private int selectedID;
+
+    private final  Looper looper = Looper.getMainLooper();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState){
@@ -58,10 +63,44 @@ public class EditDataActivity extends AppCompatActivity {
         delete_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                databaseHelper.deleteItem(selectedID,selectedItem);
-                editable_item.setText("");
-                editable_item_pass.setText("");
-                toastMessage("deleted from database");
+//                databaseHelper.deleteItem(selectedID,selectedItem);
+//                editable_item.setText("");
+//                editable_item_pass.setText("");
+//                toastMessage("deleted from database");
+//
+
+                final Handler handler = new Handler(looper){
+                    @Override
+                    public void handleMessage(Message deleteMessage){
+                        if ((Boolean) deleteMessage.obj){
+                            toastMessage(selectedItem + " deleted from database!");
+                        }else {
+                            toastMessage("Something went wrong!");
+                        }
+                    }
+                };
+
+                new Thread(() -> {
+                    final Message deleteMessage = Message.obtain();
+                    deleteMessage.obj =  databaseHelper.deleteItem(selectedID, selectedItem);
+                    handler.sendMessage(deleteMessage);
+
+                    editable_item.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            editable_item.setText("");
+                        }
+                    });
+                    editable_item_pass.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            editable_item_pass.setText("");
+                        }
+                    });
+
+                }).start();
+
+
             }
         });
     }
